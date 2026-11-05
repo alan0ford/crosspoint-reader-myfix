@@ -17,6 +17,17 @@ jobs:
         with:
           submodules: recursive
 
+      # myfix: abilita LE Secure Connections nel pairing BLE (ZMK accetta solo SC,
+      # con sc=false il PageReader ZMK risponde "Pairing failed").
+      # Patch applicata qui perché freeink-sdk è un submodule upstream.
+      - name: Patch BLE pairing (Secure Connections)
+        run: |
+          set -euo pipefail
+          f=freeink-sdk/libs/network/BleKeyboardHost/src/BleKeyboardHost.cpp
+          grep -q '/\*sc=\*/false' "$f" || { echo "Pattern sc=false non trovato in $f"; exit 1; }
+          sed -i 's|/\*sc=\*/false|/*sc=*/true|' "$f"
+          grep -n 'setSecurityAuth' "$f"
+
       - uses: actions/setup-python@v6
         with:
           python-version: '3.13'
